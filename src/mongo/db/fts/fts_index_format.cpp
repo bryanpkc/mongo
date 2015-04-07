@@ -204,6 +204,8 @@ namespace mongo {
                     } t;
                     uint32_t seed = 0;
                     MurmurHash3_x64_128( term.data(), term.size(), seed, t.hash );
+                    t.hash[0] = endian::nativeToLittle<uint64_t>(t.hash[0]);
+                    t.hash[1] = endian::nativeToLittle<uint64_t>(t.hash[1]);
                     string keySuffix = mongo::toHexLower( t.data, sizeof( t.data ) );
                     invariant( termKeySuffixLength == keySuffix.size() );
                     b.append( "", term.substr( 0, termKeyPrefixLength ) +
