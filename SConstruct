@@ -692,6 +692,8 @@ if endian == "little":
 elif endian == "big":
     env.Append( CPPDEFINES=[("MONGO_BYTE_ORDER", "4321")] )
 
+Export("endian")
+
 env['_LIBDEPS'] = '$_LIBDEPS_OBJS'
 
 if env['_LIBDEPS'] == '$_LIBDEPS_OBJS':

@@ -140,7 +140,11 @@
 #define	WT_BARRIER() __asm__ volatile("" ::: "memory")
 
 /* Pause instruction to prevent excess processor bus usage */
+#if defined(i386) || defined(__i386__) || defined(x86_64) || defined(__x86_64__)
 #define	WT_PAUSE() __asm__ volatile("pause\n" ::: "memory")
+#else
+#define WT_PAUSE() do { /* no-op */ } while (0)
+#endif
 
 #if defined(x86_64) || defined(__x86_64__)
 #define	WT_FULL_BARRIER() do {						\
@@ -157,6 +161,11 @@
 #define	WT_FULL_BARRIER() do {						\
 	__asm__ volatile ("lock; addl $0, 0(%%esp)" ::: "memory");	\
 } while (0)
+#define	WT_READ_BARRIER()	WT_FULL_BARRIER()
+#define	WT_WRITE_BARRIER()	WT_FULL_BARRIER()
+
+#elif defined(__s390x__)
+#define WT_FULL_BARRIER() do { /* no-op */ } while (0)
 #define	WT_READ_BARRIER()	WT_FULL_BARRIER()
 #define	WT_WRITE_BARRIER()	WT_FULL_BARRIER()
 
