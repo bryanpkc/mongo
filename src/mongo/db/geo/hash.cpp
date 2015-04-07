@@ -155,7 +155,11 @@ namespace mongo {
         _bits = bits;
         if (e.type() == BinData) {
             int len = 0;
+#if MONGO_BYTE_ORDER == 4321
+            memcpy((char*)&_hash, e.binData(len), sizeof(_hash));
+#else
             copyAndReverse((char*)&_hash, e.binData(len));
+#endif
             verify(len == 8);
         } else {
             cout << "GeoHash bad element: " << e << endl;
@@ -190,11 +194,16 @@ namespace mongo {
         *y = 0;
         const char *c = reinterpret_cast<const char*>(&_hash);
         for (int i = 0; i < 8; i++) {
+#if MONGO_BYTE_ORDER == 4321
+            int shift = 4 * (7 - i);
+#else
+            int shift = 4 * i;
+#endif
             unsigned t = (unsigned)(c[i]) & 0x55;
-            *y |= (geoBitSets.hashedToNormal[t] << (4 * i));
+            *y |= (geoBitSets.hashedToNormal[t] << shift);
 
             t = ((unsigned)(c[i]) >> 1) & 0x55;
-            *x |= (geoBitSets.hashedToNormal[t] << (4 * i));
+            *x |= (geoBitSets.hashedToNormal[t] << shift);
         }
     }
 
@@ -435,7 +444,11 @@ namespace mongo {
                                     BSONObjBuilder* builder,
                                     const char* fieldName) {
         char buf[8];
+#if MONGO_BYTE_ORDER == 4321
+        memcpy(buf, (char*) &hash, sizeof(hash));
+#else
         copyAndReverse(buf, (char*) &hash);
+#endif
         builder->appendBinData(fieldName, 8, bdtCustom, buf);
     }
 
