@@ -35,7 +35,7 @@ namespace mongo {
 #pragma pack(1)
     struct MaxKeyData {
         MaxKeyData() {
-            totsize=7;
+            totsize=endian::nativeToLittle<int32_t>(7);
             maxkey=MaxKey;
             name=0;
             eoo=EOO;
@@ -49,7 +49,7 @@ namespace mongo {
 
     struct MinKeyData {
         MinKeyData() {
-            totsize=7;
+            totsize=endian::nativeToLittle<int32_t>(7);
             minkey=MinKey;
             name=0;
             eoo=EOO;
