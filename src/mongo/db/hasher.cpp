@@ -70,7 +70,7 @@ namespace mongo {
                                            const BSONElement& e ,
                                            bool includeFieldName ) {
 
-        int canonicalType = e.canonicalType();
+        int canonicalType = endian::nativeToLittle<uint32_t>(e.canonicalType());
         h->addData( &canonicalType , sizeof( canonicalType ) );
 
         if ( includeFieldName ){
@@ -81,7 +81,7 @@ namespace mongo {
             //if there are no embedded objects (subobjects or arrays),
             //compute the hash, squashing numeric types to 64-bit ints
             if ( e.isNumber() ){
-                long long int i = e.safeNumberLong(); //well-defined for troublesome doubles
+                long long int i = endian::nativeToLittle<uint64_t>(e.safeNumberLong()); //well-defined for troublesome doubles
                 h->addData( &i , sizeof( i ) );
             }
             else {
@@ -113,7 +113,11 @@ namespace mongo {
         void run() {
             // Hard-coded check to ensure the hash function is consistent across platforms
             BSONObj o = BSON( "check" << 42 );
-            verify( BSONElementHasher::hash64( o.firstElement(), 0 ) == -944302157085130861LL );
+#if MONGO_BYTE_ORDER == 4321
+            verify( BSONElementHasher::hash64( o.firstElement(), 0 ) == (long long int)0x933f4ef6302ae5f2LL );
+#else
+            verify( BSONElementHasher::hash64( o.firstElement(), 0 ) == (long long int)0xf2e52a30f64e3f93LL );
+#endif
         }
     } hasherUnitTest;
 }
