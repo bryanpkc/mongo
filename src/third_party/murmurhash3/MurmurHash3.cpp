@@ -48,18 +48,59 @@ inline uint64_t rotl64 ( uint64_t x, int8_t r )
 
 #endif // !defined(_MSC_VER)
 
+/* NO-OP for little-endian platforms */
+#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__)
+# if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#   define BYTESWAP32(x) (x)
+#   define BYTESWAP64(x) (x)
+# endif
+/* if __BYTE_ORDER__ is not predefined (like FreeBSD), use arch */
+#elif defined(__i386) || defined(__x86_64) \
+        || defined(__alpha) || defined(__vax)
+# define BYTESWAP32(x) (x)
+# define BYTESWAP64(x) (x)
+/* use __builtin_bswap32 if available */
+#elif defined(__GNUC__) || defined(__clang__)
+# ifdef __has_builtin
+#   if __has_builtin(__builtin_bswap32)
+#     define BYTESWAP32(x) __builtin_bswap32(x)
+#   endif // __has_builtin(__builtin_bswap32)
+#   if __has_builtin(__builtin_bswap64)
+#     define BYTESWAP64(x) __builtin_bswap64(x)
+#   endif // __has_builtin(__builtin_bswap64)
+# endif // __has_builtin
+#endif // defined(__GNUC__) || defined(__clang__)
+/* last resort (big-endian w/o __builtin_bswap) */
+#ifndef BYTESWAP32
+# define BYTESWAP32(x) ( (((x)&0xFF)<<24) \
+                        |(((x)>>24)&0xFF) \
+                        |(((x)&0x0000FF00)<<8) \
+                        |(((x)&0x00FF0000)>>8) )
+#endif
+#ifndef BYTESWAP64
+# define BYTESWAP64(x) \
+        (((uint64_t)(x) << 56) | \
+         (((uint64_t)(x) << 40) & 0X00FF000000000000ULL) | \
+         (((uint64_t)(x) << 24) & 0X0000FF0000000000ULL) | \
+         (((uint64_t)(x) <<  8) & 0X000000FF00000000ULL) | \
+         (((uint64_t)(x) >>  8) & 0X00000000FF000000ULL) | \
+         (((uint64_t)(x) >> 24) & 0X0000000000FF0000ULL) | \
+         (((uint64_t)(x) >> 40) & 0X000000000000FF00ULL) | \
+         ((uint64_t)(x) >> 56))
+#endif
+
 //-----------------------------------------------------------------------------
 // Block read - if your platform needs to do endian-swapping or can only
 // handle aligned reads, do the conversion here
 
 FORCE_INLINE inline uint32_t getblock ( const uint32_t * p, int i )
 {
-  return p[i];
+  return BYTESWAP32(p[i]);
 }
 
 FORCE_INLINE inline uint64_t getblock ( const uint64_t * p, int i )
 {
-  return p[i];
+  return BYTESWAP64(p[i]);
 }
 
 //-----------------------------------------------------------------------------
