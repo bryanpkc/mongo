@@ -31,6 +31,7 @@
 #pragma once
 
 #include <boost/noncopyable.hpp>
+#include <boost/type_traits/is_arithmetic.hpp>
 
 #include "mongo/bson/util/builder.h"
 #include "mongo/util/assert_util.h"
@@ -42,6 +43,23 @@ namespace mongo {
         buffer with which we are working.
     */
     class BufReader : boost::noncopyable {
+    private:
+        template <typename T, bool C = boost::is_arithmetic<T>::value> class R;
+
+        template <typename T> class R<T, true> {
+        public:
+            static void read(ConstDataView c, T &t) {
+                t = c.readLE<T>();
+            }
+        };
+
+        template <typename T> class R<T, false> {
+        public:
+            static void read(ConstDataView c, T &t) {
+                c.readNative(&t);
+            }
+        };
+
     public:
         class eof : public std::exception {
         public:
@@ -56,10 +74,11 @@ namespace mongo {
         /** read in the object specified, and advance buffer pointer */
         template <typename T>
         void read(T &t) {
+            R<T> r;
             T* cur = (T*) _pos;
             T *next = cur + 1;
             if( _end < next ) throw eof();
-            t = *cur;
+            r.read(ConstDataView((const char *)_pos), t);
             _pos = next;
         }
 
@@ -74,10 +93,11 @@ namespace mongo {
         /** read in the object specified, but do not advance buffer pointer */
         template <typename T>
         void peek(T &t) const {
+            R<T> r;
             T* cur = (T*) _pos;
             T *next = cur + 1;
             if( _end < next ) throw eof();
-            t = *cur;
+            r.read(ConstDataView((const char *)_pos), t);
         }
 
         /** read in and return an object of the specified type, but do not advance buffer pointer */
