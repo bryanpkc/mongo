@@ -88,7 +88,7 @@ namespace logger {
         // Log severities for components.
         // Store numerical values of severities to be cache-line friendly.
         // Set to kDefault minimum logged severity if _hasMinimumLoggedSeverity[i] is false.
-        char _minimumLoggedSeverity[LogComponent::kNumLogComponents];
+        signed char _minimumLoggedSeverity[LogComponent::kNumLogComponents];
     };
 
 }  // namespace logger

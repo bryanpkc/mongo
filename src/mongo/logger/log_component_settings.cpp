@@ -35,7 +35,7 @@ namespace mongo {
 namespace logger {
 
     LogComponentSettings::LogComponentSettings() {
-        _minimumLoggedSeverity[LogComponent::kDefault] = char(LogSeverity::Log().toInt());
+        _minimumLoggedSeverity[LogComponent::kDefault] = (signed char)LogSeverity::Log().toInt();
 
         for (int i = 0; i < int(LogComponent::kNumLogComponents); ++i) {
             _minimumLoggedSeverity[i] = _minimumLoggedSeverity[LogComponent::kDefault];
@@ -60,7 +60,7 @@ namespace logger {
     void LogComponentSettings::setMinimumLoggedSeverity(LogComponent component,
                                                         LogSeverity severity) {
         dassert(int(component) >= 0 && int(component) < LogComponent::kNumLogComponents);
-        _minimumLoggedSeverity[component] = char(severity.toInt());
+        _minimumLoggedSeverity[component] = (signed char)severity.toInt();
         _hasMinimumLoggedSeverity[component] = true;
 
         // Every unconfigured component will inherit log severity from parent.
@@ -71,7 +71,7 @@ namespace logger {
                 LogComponent::Value v = LogComponent::Value(i);
                 LogComponent parentComponent = LogComponent(v).parent();
                 LogSeverity parentSeverity = getMinimumLogSeverity(parentComponent);
-                _minimumLoggedSeverity[i] = char(parentSeverity.toInt());
+                _minimumLoggedSeverity[i] = (signed char)parentSeverity.toInt();
             }
         }
     }
