@@ -50,14 +50,23 @@ namespace mongo {
 
         union {
             struct {
+#if MONGO_BYTE_ORDER == 4321
+                int _major;
+                int _minor;
+#else
                 int _minor;
                 int _major;
+#endif
             };
             unsigned long long _combined;
         };
         OID _epoch;
 
+#if MONGO_BYTE_ORDER == 4321
+        ChunkVersion() : _major(0), _minor(0), _epoch(OID()) {}
+#else
         ChunkVersion() : _minor(0), _major(0), _epoch(OID()) {}
+#endif
 
         //
         // Constructors shouldn't have default parameters here, since it's vital we track from
@@ -65,7 +74,11 @@ namespace mongo {
         //
 
         ChunkVersion( int major, int minor, const OID& epoch )
-            : _minor(minor),_major(major), _epoch(epoch) {
+#if MONGO_BYTE_ORDER == 4321
+            : _major(major), _minor(minor), _epoch(epoch) {
+#else
+            : _minor(minor), _major(major), _epoch(epoch) {
+#endif
         }
 
         static ChunkVersion DROPPED() {
