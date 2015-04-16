@@ -80,8 +80,13 @@ __wt_try_readlock(WT_SESSION_IMPL *session, WT_RWLOCK *rwlock)
 	pad = l->s.pad;
 	users = l->s.users;
 	writers = l->s.writers;
+#ifdef  WORDS_BIGENDIAN
+	old = (writers << 48) + (users << 32) + (users << 16) + pad;
+	new = (writers << 48) + ((users + 1) << 32) + ((users + 1) << 16) + pad;
+#else
 	old = (pad << 48) + (users << 32) + (users << 16) + writers;
 	new = (pad << 48) + ((users + 1) << 32) + ((users + 1) << 16) + writers;
+#endif
 	return (WT_ATOMIC_CAS_VAL8(l->u, old, new) == old ? 0 : EBUSY);
 }
 
@@ -102,8 +107,13 @@ __wt_readlock(WT_SESSION_IMPL *session, WT_RWLOCK *rwlock)
 	WT_STAT_FAST_CONN_INCR(session, rwlock_read);
 
 	l = &rwlock->rwlock;
+#ifdef WORDS_BIGENDIAN
+	me = WT_ATOMIC_FETCH_ADD8(l->u, (uint64_t)1 << 16);
+	val = (uint16_t)(me >> 16);
+#else
 	me = WT_ATOMIC_FETCH_ADD8(l->u, (uint64_t)1 << 32);
 	val = (uint16_t)(me >> 32);
+#endif
 	for (pause_cnt = 0; val != l->s.readers;) {
 		/*
 		 * We failed to get the lock; pause before retrying and if we've
@@ -161,8 +171,13 @@ __wt_try_writelock(WT_SESSION_IMPL *session, WT_RWLOCK *rwlock)
 	pad = l->s.pad;
 	readers = l->s.readers;
 	users = l->s.users;
+#ifdef WORDS_BIGENDIAN
+	old = (users << 48) + (readers << 32) + (users << 16) + pad;
+	new = (users << 48) + (readers << 32) + ((users + 1) << 16) + pad;
+#else
 	old = (pad << 48) + (users << 32) + (readers << 16) + users;
 	new = (pad << 48) + ((users + 1) << 32) + (readers << 16) + users;
+#endif
 	return (WT_ATOMIC_CAS_VAL8(l->u, old, new) == old ? 0 : EBUSY);
 }
 
@@ -187,8 +202,13 @@ __wt_writelock(WT_SESSION_IMPL *session, WT_RWLOCK *rwlock)
 	 * the write lock.
 	 */
 	l = &rwlock->rwlock;
+#ifdef WORDS_BIGENDIAN
+	me = WT_ATOMIC_FETCH_ADD8(l->u, (uint64_t)1 << 16);
+	val = (uint16_t)(me >> 16);
+#else
 	me = WT_ATOMIC_FETCH_ADD8(l->u, (uint64_t)1 << 32);
 	val = (uint16_t)(me >> 32);
+#endif
 	while (val != l->s.writers)
 		WT_PAUSE();
 

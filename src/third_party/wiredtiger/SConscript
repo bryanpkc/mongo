@@ -2,7 +2,7 @@
 import re
 import textwrap
 
-Import("env windows darwin solaris linux freebsd openbsd debugBuild")
+Import("env windows darwin solaris linux freebsd openbsd debugBuild endian")
 Import("get_option")
 
 env = env.Clone()
@@ -101,6 +101,9 @@ with open(File(filelistfile).srcnode().abspath) as filelist:
     wtsources = [line.strip()
                  for line in filelist
                  if not line.startswith("#") and len(line.strip()) >= 1]
+
+if endian == "big":
+    env.Append(CPPDEFINES=['WORDS_BIGENDIAN'])
 
 if useZlib:
     env.Append(CPPDEFINES=['HAVE_BUILTIN_EXTENSION_ZLIB'])

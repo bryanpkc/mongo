@@ -28,9 +28,6 @@ struct __wt_condvar {
  * locking functions.
  */
 typedef union {			/* Read/write lock */
-#ifdef WORDS_BIGENDIAN
-	WiredTiger read/write locks require modification for big-endian systems.
-#else
 	uint64_t u;
 	uint32_t us;
 	struct {
@@ -39,7 +36,6 @@ typedef union {			/* Read/write lock */
 		uint16_t users;
 		uint16_t pad;
 	} s;
-#endif
 } wt_rwlock_t;
 
 /*

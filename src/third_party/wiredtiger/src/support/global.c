@@ -41,12 +41,12 @@ static void
 __wt_global_once(void)
 {
 	WT_DECL_RET;
-
+#if 0
 	if ((ret = __system_is_little_endian()) != 0) {
 		__wt_pthread_once_failed = ret;
 		return;
 	}
-
+#endif
 	if ((ret =
 	    __wt_spin_init(NULL, &__wt_process.spinlock, "global")) != 0) {
 		__wt_pthread_once_failed = ret;
