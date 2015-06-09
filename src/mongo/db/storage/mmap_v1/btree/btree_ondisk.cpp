@@ -53,7 +53,12 @@ namespace mongo {
             la = 0;
             ofs = OurNullOfs;
         }
-        memcpy(_a, &la, 3); // endian
+        // The memcpy function is only given the three least significant bytes.
+        // On big-endian platforms, the most significant byte is shifted off before the copy.
+#if MONGO_BYTE_ORDER == 4321
+        la <<= 8;
+#endif
+        memcpy(_a, &la, 3);
     }
 
 }  // namespace mongo

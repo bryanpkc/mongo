@@ -33,6 +33,7 @@
 #include "mongo/platform/basic.h"
 
 #include "mongo/db/storage/mmap_v1/dur_recover.h"
+#include "mongo/db/storage/mmap_v1/bswap.h"
 
 #include <fcntl.h>
 #include <iomanip>
@@ -609,7 +610,7 @@ namespace mongo {
             _recover(); // throws on interruption
         }
 
-        struct BufReaderY { int a,b; };
+        struct BufReaderY { little<int> a,b; };
         class BufReaderUnitTest : public StartupTest {
         public:
             void run() {

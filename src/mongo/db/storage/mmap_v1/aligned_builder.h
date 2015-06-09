@@ -29,6 +29,7 @@
 #pragma once
 
 #include "mongo/base/string_data.h"
+#include "mongo/base/data_view.h"
 #include "mongo/bson/util/builder.h"
 
 namespace mongo {
@@ -64,37 +65,49 @@ namespace mongo {
         char* cur() { return _p._data + _len; }
 
         void appendChar(char j) {
-            *((char*)grow(sizeof(char))) = j;
+            BOOST_STATIC_ASSERT(CHAR_BIT == 8);
+            appendNumImpl(j);
         }
         void appendNum(char j) {
-            *((char*)grow(sizeof(char))) = j;
+            appendNumImpl(j);
         }
         void appendNum(short j) {
-            *((short*)grow(sizeof(short))) = j;
+            BOOST_STATIC_ASSERT(sizeof(short) == 2);
+            appendNumImpl(j);
         }
         void appendNum(int j) {
-            *((int*)grow(sizeof(int))) = j;
+            BOOST_STATIC_ASSERT(sizeof(int) == 4);
+            appendNumImpl(j);
         }
         void appendNum(unsigned j) {
-            *((unsigned*)grow(sizeof(unsigned))) = j;
+            appendNumImpl(j);
         }
-        void appendNum(bool j) {
-            *((bool*)grow(sizeof(bool))) = j;
-        }
+
+        // Bool does not have a well defined encoding.
+//        void appendNum(bool j) {
+//            appendNumImpl(j);
+//        }
+
         void appendNum(double j) {
-            *((double*)grow(sizeof(double))) = j;
+            BOOST_STATIC_ASSERT(sizeof(double) == 8);
+            appendNumImpl(j);
         }
         void appendNum(long long j) {
-            *((long long*)grow(sizeof(long long))) = j;
+            BOOST_STATIC_ASSERT(sizeof(long long) == 8);
+            appendNumImpl(j);
         }
         void appendNum(unsigned long long j) {
-            *((unsigned long long*)grow(sizeof(unsigned long long))) = j;
+            appendNumImpl(j);
         }
 
-        void appendBuf(const void *src, size_t len) { memcpy(grow((unsigned) len), src, len); }
+        void appendBuf(const void *src, size_t len) {
+            memcpy(grow((unsigned) len), src, len);
+        }
 
         template<class T>
-        void appendStruct(const T& s) { appendBuf(&s, sizeof(T)); }
+        void appendStruct(const T& s) {
+            appendBuf(&s, sizeof(T));
+        }
 
         void appendStr(const StringData &str , bool includeEOO = true ) {
             const unsigned len = str.size() + ( includeEOO ? 1 : 0 );
@@ -107,6 +120,15 @@ namespace mongo {
 
     private:
         static const unsigned Alignment = 8192;
+
+        template<typename T>
+        void appendNumImpl(T t) {
+            // NOTE: For now, we assume that all things written
+            // by a BufBuilder are intended for external use: either written to disk
+            // or to the wire. Since all of our encoding formats are little endian,
+            // we bake that assumption in here. This decision should be revisited soon.
+            DataView(grow(sizeof(t))).writeLE(t);
+        }
 
         /** returns the pre-grow write position */
         inline char* grow(unsigned by) {

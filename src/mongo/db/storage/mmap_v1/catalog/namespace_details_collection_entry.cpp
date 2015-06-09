@@ -31,6 +31,7 @@
 #define MONGO_LOG_DEFAULT_COMPONENT ::mongo::logger::LogComponent::kStorage
 
 #include "mongo/db/storage/mmap_v1/catalog/namespace_details_collection_entry.h"
+#include "mongo/db/storage/mmap_v1/bswap.h"
 
 #include "mongo/db/index/index_descriptor.h"
 #include "mongo/db/ops/update.h"
@@ -344,13 +345,13 @@ namespace mongo {
             massert( 16631, "index does not have an 'expireAfterSeconds' field", false );
             break;
         case NumberInt:
-            *txn->recoveryUnit()->writing(reinterpret_cast<int*>(nonConstPtr)) = newExpireSeconds;
+            *txn->recoveryUnit()->writing(&little<int>::ref(nonConstPtr)) = newExpireSeconds;
             break;
         case NumberDouble:
-            *txn->recoveryUnit()->writing(reinterpret_cast<double*>(nonConstPtr)) = newExpireSeconds;
+            *txn->recoveryUnit()->writing(&little<double>::ref(nonConstPtr)) = newExpireSeconds;
             break;
         case NumberLong:
-            *txn->recoveryUnit()->writing(reinterpret_cast<long long*>(nonConstPtr)) = newExpireSeconds;
+            *txn->recoveryUnit()->writing(&little<long long>::ref(nonConstPtr)) = newExpireSeconds;
             break;
         default:
             massert( 16632, "current 'expireAfterSeconds' is not a number", false );

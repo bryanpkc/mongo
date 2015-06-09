@@ -424,15 +424,15 @@ namespace mongo {
                     p += 8;
                     break;
                 case cdouble:
-                    b.append("", (double&) *p);
+                    b.append("", ConstDataView((const char *)p).readLE<double>());
                     p += sizeof(double);
                     break;
                 case cint:
-                    b.append("", static_cast< int >((reinterpret_cast< const PackedDouble& >(*p)).d));
+                    b.append("", static_cast< int >(ConstDataView((const char *)p).readLE<double>()));
                     p += sizeof(double);
                     break;
                 case clong:
-                    b.append("", static_cast< long long>((reinterpret_cast< const PackedDouble& >(*p)).d));
+                    b.append("", static_cast< long long>(ConstDataView((const char *)p).readLE<double>()));
                     p += sizeof(double);
                     break;
                 default:
@@ -458,8 +458,8 @@ namespace mongo {
         switch( lt ) { 
         case cdouble:
             {
-                double L = (reinterpret_cast< const PackedDouble* >(l))->d;
-                double R = (reinterpret_cast< const PackedDouble* >(r))->d;
+                double L = ConstDataView((const char *)l).readLE<double>();
+                double R = ConstDataView((const char *)r).readLE<double>();
                 if( L < R )
                     return -1;
                 if( L != R )
@@ -507,8 +507,8 @@ namespace mongo {
             }
         case cdate:
             {
-                long long L = *((long long *) l);
-                long long R = *((long long *) r);
+                long long L = ConstDataView((const char *)l).readLE<long long>();
+                long long R = ConstDataView((const char *)r).readLE<long long>();
                 if( L < R )
                     return -1;
                 if( L > R )
@@ -647,7 +647,7 @@ namespace mongo {
                 l += 8; r += 8;
                 break;
             case cdouble:
-                if( (reinterpret_cast< const PackedDouble* > (l))->d != (reinterpret_cast< const PackedDouble* >(r))->d )
+                if( ConstDataView((const char *)l).readLE<double>() != ConstDataView((const char *)r).readLE<double>() )
                     return false;
                 l += 8; r += 8;
                 break;

@@ -213,9 +213,15 @@ namespace mongo {
             // endian
             unsigned long long result = ofs;
             char* cursor = reinterpret_cast<char *>(&result);
+#if MONGO_BYTE_ORDER == 4321
+            for (int i = 0; i < 3; i++) {
+                *reinterpret_cast<uint8_t*>(cursor + i + 1) = *reinterpret_cast<const uint8_t*>(&_a[i]);
+            }
+#else
             *reinterpret_cast<uint16_t*>(cursor + 4) = *reinterpret_cast<const uint16_t*>(&_a[0]);
             *reinterpret_cast<uint8_t*>(cursor + 6) = *reinterpret_cast<const uint8_t*>(&_a[2]);
             *reinterpret_cast<uint8_t*>(cursor + 7) = uint8_t(0);
+#endif
             return result;
         }
 
@@ -281,7 +287,11 @@ namespace mongo {
             // endian
             if( isNull() ) return DiskLoc();
             unsigned a = *((unsigned *) (_a-1));
+#if MONGO_BYTE_ORDER == 4321
+            return DiskLoc(a & OurMaxA, ofs);
+#else
             return DiskLoc(a >> 8, ofs);
+#endif
         }
 
         std::string toString() const { return DiskLoc(*this).toString(); }
