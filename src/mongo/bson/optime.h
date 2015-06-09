@@ -50,8 +50,13 @@ namespace mongo {
      */
 #pragma pack(4)
     class OpTime {
+#if MONGO_BYTE_ORDER == 4321
+        unsigned secs; // current second comes first so we can do a single 64 bit compare on big endian
+        unsigned i;
+#else
         unsigned i; // ordinal comes first so we can do a single 64 bit compare on little endian
         unsigned secs;
+#endif
     public:
         unsigned getSecs() const {
             return secs;
@@ -93,10 +98,18 @@ namespace mongo {
          bytes of overhead.
          */
         unsigned long long asDate() const {
+#if MONGO_BYTE_ORDER == 4321
+            return reinterpret_cast<const unsigned long long*>(&secs)[0];
+#else
             return reinterpret_cast<const unsigned long long*>(&i)[0];
+#endif
         }
         long long asLL() const {
+#if MONGO_BYTE_ORDER == 4321
+            return reinterpret_cast<const long long*>(&secs)[0];
+#else
             return reinterpret_cast<const long long*>(&i)[0];
+#endif
         }
 
         bool isNull() const { return secs == 0; }
