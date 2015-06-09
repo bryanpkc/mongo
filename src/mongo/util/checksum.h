@@ -29,6 +29,7 @@
 #pragma once
 
 #include "mongo/platform/basic.h"
+#include "mongo/base/data_cursor.h"
 
 namespace mongo {
     /** a simple, rather dumb, but very fast checksum.  see perftests.cpp for unit tests. */
@@ -42,16 +43,16 @@ namespace mongo {
         void gen(const void *buf, unsigned len) {
             wassert( ((size_t)buf) % 8 == 0 ); // performance warning
             unsigned n = len / 8 / 2;
-            const unsigned long long *p = (const unsigned long long *) buf;
+            ConstDataCursor p((const char *)buf);
             unsigned long long a = 0;
             for( unsigned i = 0; i < n; i++ ) {
-                a += (*p ^ i);
-                p++;
+                unsigned long long ll = p.readLEAndAdvance<unsigned long long>();
+                a += (ll ^ i);
             }
             unsigned long long b = 0;
             for( unsigned i = 0; i < n; i++ ) {
-                b += (*p ^ i);
-                p++;
+                unsigned long long ll = p.readLEAndAdvance<unsigned long long>();
+                b += (ll ^ i);
             }
             unsigned long long c = 0;
             for( unsigned i = n * 2 * 8; i < len; i++ ) { // 0-7 bytes left
