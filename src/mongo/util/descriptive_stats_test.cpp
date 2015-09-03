@@ -119,7 +119,7 @@ namespace {
         }
         ASSERT_TRUE(d.quantilesReady());
         for (size_t i = 0; i < d.numberOfQuantiles; i++) {
-            ASSERT_APPROX_EQUAL(d.quantile(i), -200 + static_cast<int>(i) * 4, 1);
+            ASSERT_APPROX_EQUAL(d.quantile(i), -200 + static_cast<int>(i) * 4, 1.1);
         }
         ASSERT_EQUALS(d.min(), -200);
         ASSERT_EQUALS(d.max(), 200);
