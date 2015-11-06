@@ -885,12 +885,13 @@ def CheckForToolchain(context, toolchain, lang_name, compiler_var, source_suffix
 # NOTE: Remember to add a trailing comma to form any required one
 # element tuples, or your configure checks will fail in strange ways.
 processor_macros = {
-    'x86_64': ('__x86_64', '_M_AMD64'),
-    'i386': ('__i386', '_M_IX86'),
-    'sparc': ('__sparc',),
-    'PowerPC': ('__powerpc__', '__PPC'),
-    'arm' : ('__arm__',),
-    'arm64' : ('__arm64__', '__aarch64__'),
+    'x86_64': ['__x86_64', '_M_AMD64'],
+    'i386': ['__i386', '_M_IX86'],
+    'sparc': ['__sparc'],
+    'PowerPC': ['__powerpc__', '__PPC'],
+    'arm' : ['__arm__'],
+    'arm64' : ['__arm64__', '__aarch64__'],
+    's390x' : ['__s390x__'],
 }
 
 def CheckForProcessor(context, which_arch):
@@ -1165,6 +1166,8 @@ if endian == "little":
     env.SetConfigHeaderDefine("MONGO_CONFIG_BYTE_ORDER", "1234")
 elif endian == "big":
     env.SetConfigHeaderDefine("MONGO_CONFIG_BYTE_ORDER", "4321")
+
+Export("endian")
 
 if env['_LIBDEPS'] == '$_LIBDEPS_OBJS':
     # The libraries we build in LIBDEPS_OBJS mode are just placeholders for tracking dependencies.
