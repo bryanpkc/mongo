@@ -269,12 +269,19 @@ public:
         while (fgets(fstr, 1023, f) != NULL && !feof(f)) {
             // until the end of the file
             fstr[strlen(fstr) < 1 ? 0 : strlen(fstr) - 1] = '\0';
+#ifdef __s390x__
+            if (strncmp(fstr, "processor ", 10) == 0)
+                ++procCount;
+            if (strncmp(fstr, "features\t:", 10) == 0)
+                features = fstr + 11;
+#else
             if (strncmp(fstr, "processor\t:", 11) == 0)
                 ++procCount;
             if (strncmp(fstr, "cpu MHz\t\t:", 10) == 0)
                 freq = fstr + 11;
             if (strncmp(fstr, "flags\t\t:", 8) == 0)
                 features = fstr + 9;
+#endif
         }
 
         fclose(f);
