@@ -42,11 +42,6 @@ __wt_global_once(void)
 {
 	WT_DECL_RET;
 
-	if ((ret = __system_is_little_endian()) != 0) {
-		__wt_pthread_once_failed = ret;
-		return;
-	}
-
 	if ((ret =
 	    __wt_spin_init(NULL, &__wt_process.spinlock, "global")) != 0) {
 		__wt_pthread_once_failed = ret;

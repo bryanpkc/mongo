@@ -184,6 +184,12 @@ __wt_atomic_cas_ptr(void *vp, void *old, void *new)
 #define	WT_READ_BARRIER()	WT_FULL_BARRIER()
 #define	WT_WRITE_BARRIER()	WT_FULL_BARRIER()
 
+#elif defined(__s390x__)
+#define WT_PAUSE()		__asm__ volatile("lr 0,0" ::: "memory")
+#define WT_FULL_BARRIER()	__asm__ volatile("bcr 15,0" ::: "memory")
+#define	WT_READ_BARRIER()	WT_FULL_BARRIER()
+#define	WT_WRITE_BARRIER()	WT_FULL_BARRIER()
+
 #elif defined(__aarch64__)
 #define	WT_PAUSE()	__asm__ volatile("yield" ::: "memory")
 #define	WT_FULL_BARRIER() do {						\
