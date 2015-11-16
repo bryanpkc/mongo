@@ -70,7 +70,7 @@ StatusWith<ChunkVersion> ChunkVersion::parseFromBSONForCommands(const BSONObj& o
                     str::stream() << "Invalid type " << tsPart.type()
                                   << " for version timestamp part."};
 
-        version._combined = tsPart.timestamp().asULL();
+        version = fromDeprecatedLong(tsPart.timestamp().asULL(), OID());
     }
 
     // Expect the epoch OID
@@ -106,7 +106,7 @@ void ChunkVersion::appendForCommands(BSONObjBuilder* builder) const {
 
 BSONObj ChunkVersion::toBSON() const {
     BSONArrayBuilder b;
-    b.appendTimestamp(_combined);
+    b.appendTimestamp(toLong());
     b.append(_epoch);
     return b.arr();
 }
