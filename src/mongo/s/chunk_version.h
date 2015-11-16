@@ -30,6 +30,7 @@
 
 #include "mongo/db/jsobj.h"
 #include "mongo/s/optime_pair.h"
+#include "mongo/platform/endian.h"
 
 namespace mongo {
 
@@ -93,7 +94,12 @@ public:
 
     static ChunkVersion fromDeprecatedLong(unsigned long long num, const OID& epoch) {
         ChunkVersion version(0, 0, epoch);
+#if MONGO_CONFIG_BYTE_ORDER == 4321
+        version._major = (int)(num >> 32);
+        version._minor = (int)(num);
+#else
         version._combined = num;
+#endif
         return version;
     }
 
@@ -114,7 +120,11 @@ public:
     // Note: this shouldn't be used as a substitute for version except in specific cases -
     // epochs make versions more complex
     unsigned long long toLong() const {
+#if MONGO_CONFIG_BYTE_ORDER == 4321
+        return ((unsigned long long)_major << 32 | _minor);
+#else
         return _combined;
+#endif
     }
 
     bool isSet() const {
@@ -140,19 +150,39 @@ public:
     //
 
     bool operator>(const ChunkVersion& otherVersion) const {
+#if MONGO_CONFIG_BYTE_ORDER == 4321
+        return (this->_major > otherVersion._major ||
+                (this->_major == otherVersion._major && this->_minor > otherVersion._minor));
+#else
         return this->_combined > otherVersion._combined;
+#endif
     }
 
     bool operator>=(const ChunkVersion& otherVersion) const {
+#if MONGO_CONFIG_BYTE_ORDER == 4321
+        return (this->_major > otherVersion._major ||
+                (this->_major == otherVersion._major && this->_minor >= otherVersion._minor));
+#else
         return this->_combined >= otherVersion._combined;
+#endif
     }
 
     bool operator<(const ChunkVersion& otherVersion) const {
+#if MONGO_CONFIG_BYTE_ORDER == 4321
+        return (this->_major < otherVersion._major ||
+                (this->_major == otherVersion._major && this->_minor < otherVersion._minor));
+#else
         return this->_combined < otherVersion._combined;
+#endif
     }
 
     bool operator<=(const ChunkVersion& otherVersion) const {
+#if MONGO_CONFIG_BYTE_ORDER == 4321
+        return (this->_major < otherVersion._major ||
+                (this->_major == otherVersion._major && this->_minor <= otherVersion._minor));
+#else
         return this->_combined <= otherVersion._combined;
+#endif
     }
 
     //
@@ -321,7 +351,7 @@ public:
         invariant(!prefix.empty());
 
         BSONObjBuilder b;
-        b.appendTimestamp(prefix, _combined);
+        b.appendTimestamp(prefix, toLong());
         b.append(prefix + "Epoch", _epoch);
         return b.obj();
     }
