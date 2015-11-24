@@ -33,6 +33,7 @@
 #include "mongo/platform/basic.h"
 
 #include "mongo/db/storage/mmap_v1/dur_recover.h"
+#include "mongo/db/storage/mmap_v1/bswap.h"
 
 #include <fcntl.h>
 #include <iomanip>
@@ -604,7 +605,7 @@ void replayJournalFilesAtStartup() {
 }
 
 struct BufReaderY {
-    int a, b;
+    little<int> a, b;
 };
 class BufReaderUnitTest : public StartupTest {
 public:
