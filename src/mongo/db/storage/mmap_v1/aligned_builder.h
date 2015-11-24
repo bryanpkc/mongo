@@ -72,31 +72,39 @@ public:
     }
 
     void appendChar(char j) {
-        *((char*)grow(sizeof(char))) = j;
+        BOOST_STATIC_ASSERT(CHAR_BIT == 8);
+        appendNumImpl(j);
     }
     void appendNum(char j) {
-        *((char*)grow(sizeof(char))) = j;
+        appendNumImpl(j);
     }
     void appendNum(short j) {
-        *((short*)grow(sizeof(short))) = j;
+        BOOST_STATIC_ASSERT(sizeof(short) == 2);
+        appendNumImpl(j);
     }
     void appendNum(int j) {
-        *((int*)grow(sizeof(int))) = j;
+        BOOST_STATIC_ASSERT(sizeof(int) == 4);
+        appendNumImpl(j);
     }
     void appendNum(unsigned j) {
-        *((unsigned*)grow(sizeof(unsigned))) = j;
+        appendNumImpl(j);
     }
+#if 0
+    // Bool does not have a well defined encoding.
     void appendNum(bool j) {
-        *((bool*)grow(sizeof(bool))) = j;
+        appendNumImpl(j);
     }
+#endif
     void appendNum(double j) {
-        *((double*)grow(sizeof(double))) = j;
+        BOOST_STATIC_ASSERT(sizeof(double) == 8);
+        appendNumImpl(j);
     }
     void appendNum(long long j) {
-        *((long long*)grow(sizeof(long long))) = j;
+        BOOST_STATIC_ASSERT(sizeof(long long) == 8);
+        appendNumImpl(j);
     }
     void appendNum(unsigned long long j) {
-        *((unsigned long long*)grow(sizeof(unsigned long long))) = j;
+        appendNumImpl(j);
     }
 
     void appendBuf(const void* src, size_t len) {
@@ -121,6 +129,11 @@ public:
 
 private:
     static const unsigned Alignment = 8192;
+
+    template<typename T>
+    void appendNumImpl(T t) {
+        DataView(grow(sizeof(t))).write(tagLittleEndian(t));
+    }
 
     /** returns the pre-grow write position */
     inline char* grow(unsigned by) {

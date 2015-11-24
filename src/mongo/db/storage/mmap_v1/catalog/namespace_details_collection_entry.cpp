@@ -31,7 +31,7 @@
 #define MONGO_LOG_DEFAULT_COMPONENT ::mongo::logger::LogComponent::kStorage
 
 #include "mongo/db/storage/mmap_v1/catalog/namespace_details_collection_entry.h"
-
+#include "mongo/db/storage/mmap_v1/bswap.h"
 #include "mongo/db/index/index_descriptor.h"
 #include "mongo/db/ops/update.h"
 #include "mongo/db/record_id.h"
@@ -338,14 +338,14 @@ void NamespaceDetailsCollectionCatalogEntry::updateTTLSetting(OperationContext* 
             massert(16631, "index does not have an 'expireAfterSeconds' field", false);
             break;
         case NumberInt:
-            *txn->recoveryUnit()->writing(reinterpret_cast<int*>(nonConstPtr)) = newExpireSeconds;
+            *txn->recoveryUnit()->writing(&little<int>::ref(nonConstPtr)) = newExpireSeconds;
             break;
         case NumberDouble:
-            *txn->recoveryUnit()->writing(reinterpret_cast<double*>(nonConstPtr)) =
+            *txn->recoveryUnit()->writing(&little<double>::ref(nonConstPtr)) =
                 newExpireSeconds;
             break;
         case NumberLong:
-            *txn->recoveryUnit()->writing(reinterpret_cast<long long*>(nonConstPtr)) =
+            *txn->recoveryUnit()->writing(&little<long long>::ref(nonConstPtr)) =
                 newExpireSeconds;
             break;
         default:

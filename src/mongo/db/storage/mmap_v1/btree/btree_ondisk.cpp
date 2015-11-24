@@ -53,6 +53,9 @@ void DiskLoc56Bit::operator=(const DiskLoc& loc) {
         la = 0;
         ofs = OurNullOfs;
     }
+#if MONGO_CONFIG_BYTE_ORDER == 4321
+    la <<= 8;
+#endif
     memcpy(_a, &la, 3);  // endian
 }
 

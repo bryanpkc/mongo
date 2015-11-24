@@ -432,15 +432,15 @@ BSONObj KeyV1::toBson() const {
                 p += 8;
                 break;
             case cdouble:
-                b.append("", (double&)*p);
+                b.append("", ConstDataView((const char*)p).read<LittleEndian<double>>());
                 p += sizeof(double);
                 break;
             case cint:
-                b.append("", static_cast<int>((reinterpret_cast<const PackedDouble&>(*p)).d));
+                b.append("", static_cast<int>(ConstDataView((const char*)p).read<LittleEndian<double>>()));
                 p += sizeof(double);
                 break;
             case clong:
-                b.append("", static_cast<long long>((reinterpret_cast<const PackedDouble&>(*p)).d));
+                b.append("", static_cast<long long>(ConstDataView((const char*)p).read<LittleEndian<double>>()));
                 p += sizeof(double);
                 break;
             default:
@@ -466,8 +466,8 @@ static int compare(const unsigned char*& l, const unsigned char*& r) {
     // same type
     switch (lt) {
         case cdouble: {
-            double L = (reinterpret_cast<const PackedDouble*>(l))->d;
-            double R = (reinterpret_cast<const PackedDouble*>(r))->d;
+            double L = ConstDataView((const char*)l).read<LittleEndian<double>>();
+            double R = ConstDataView((const char*)r).read<LittleEndian<double>>();
             if (L < R)
                 return -1;
             if (L != R)
@@ -518,8 +518,8 @@ static int compare(const unsigned char*& l, const unsigned char*& r) {
             break;
         }
         case cdate: {
-            long long L = *((long long*)l);
-            long long R = *((long long*)r);
+            long long L = ConstDataView((const char*)l).read<LittleEndian<long long>>();
+            long long R = ConstDataView((const char*)r).read<LittleEndian<long long>>();
             if (L < R)
                 return -1;
             if (L > R)
