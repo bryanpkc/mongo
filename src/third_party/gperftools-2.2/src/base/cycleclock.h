@@ -133,6 +133,10 @@ struct CycleClock {
     _asm rdtsc
 #elif defined(_MSC_VER)
     return __rdtsc();
+#elif defined(__s390x__)
+    uint64 result;
+    __asm__ __volatile__ ("stck %0" : "=Q" (result) : : "cc");
+    return result;
 #elif defined(ARMV3) || defined(__aarch64__)
 #if defined(ARMV7)  // V7 is the earliest arch that has a standard cyclecount
     uint32 pmccntr;

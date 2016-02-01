@@ -81,7 +81,7 @@ if has_option('use-cpu-profiler'):
 
 env = conf.Finish()
 
-env.Append( CPPDEFINES=[ "NO_TCMALLOC_SAMPLES", "NO_HEAP_CHECK"] )
+env.Append( CPPDEFINES=[ "NO_TCMALLOC_SAMPLES", "NO_HEAP_CHECK", "HAVE_DECL_BACKTRACE"] )
 
 # The build system doesn't define NDEBUG globally for historical reasons, however, TCMalloc
 # expects that NDEBUG is used to select between preferring the mmap or the sbrk allocator. For
